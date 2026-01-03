@@ -40,11 +40,30 @@ import {
 } from 'lucide-react';
 
 // --- Firebase Configuration ---
-// 実際のデプロイ時には環境変数等から値を取得してください
-const firebaseConfig = JSON.parse(typeof __firebase_config !== 'undefined' ? __firebase_config : '{}');
+
+// あなたのFirebaseプロジェクトの設定
+const userFirebaseConfig = {
+  apiKey: "AIzaSyB80MJUiLo5UDVgv9VysAe1nB_Mbpte5uQ",
+  authDomain: "ai-score-creation.firebaseapp.com",
+  projectId: "ai-score-creation",
+  storageBucket: "ai-score-creation.firebasestorage.app",
+  messagingSenderId: "5402153162",
+  appId: "1:5402153162:web:1676b9cd264788df41a433",
+  measurementId: "G-CCJMH4RJNJ"
+};
+
+/**
+ * プレビュー環境用の設定ロジック
+ * 1. userFirebaseConfig に値が入っていればそれを使用
+ * 2. 入っていない場合は、システムのデフォルト設定（__firebase_config）を使用
+ */
+const firebaseConfig = (userFirebaseConfig.apiKey && userFirebaseConfig.apiKey !== "YOUR_API_KEY")
+  ? userFirebaseConfig
+  : (typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : {});
+
 const appId = typeof __app_id !== 'undefined' ? __app_id : 'demo-app';
 
-// Initialize Firebase
+// Initialize Firebase (一回だけ初期化)
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db = getFirestore(app);
@@ -323,9 +342,11 @@ export default function App() {
   // Auth Init
   useEffect(() => {
     const initAuth = async () => {
+      // プレビュー環境でのみ、環境変数のトークンがあれば使用する
       if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
         await signInWithCustomToken(auth, __initial_auth_token);
       } else {
+        // 通常（デプロイ後）は匿名ログインを使用
         await signInAnonymously(auth);
       }
     };
